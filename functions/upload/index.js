@@ -25,8 +25,8 @@ export async function onRequest(context) {  // Contents of context object
 
     // 鉴权
     const requiredPermission = 'upload';
-    const publicRoutes = ['/api/pjfun_upload'];
-    if(publicRoutes.includes(url.pathname)){
+    const pjtype = url.searchParams.get('pj_type')||''
+    if(pjtype==='jm'){
         let authCode = url.searchParams.get('authCode');
         if(authCode !== securityConfig.auth.user.authCodeUpload){
             return UnauthorizedResponse('Unauthorized');
@@ -169,7 +169,8 @@ async function processFileUpload(context, formdata = null) {
     // 获得返回链接格式, default为返回/file/id, full为返回完整链接
     const returnFormat = url.searchParams.get('returnFormat') || 'default';
     let returnLink = '';
-    if(url.pathname==='/api/pjfun_upload'){
+    const pjtype = url.searchParams.get('pj_type')||''
+    if(pjtype==='jm'){
         returnLink=xorEncrypt(`${url.origin}/file/${fullId}`,securityConfig.auth.user.pjAuthCode);
     }else if (returnFormat === 'full') {
         returnLink = `${url.origin}/file/${fullId}`;
