@@ -95,7 +95,7 @@ export async function fetchSecurityConfig(env) {
         // 返回默认配置
         return {
             auth: {
-                user: { authCode: "" },
+                user: { authCode: "",pjAuthCode:"",authCodeUpload:"" },
                 admin: { adminUsername: "", adminPassword: "" }
             },
             upload: {
