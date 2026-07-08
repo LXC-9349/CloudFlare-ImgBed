@@ -31,7 +31,13 @@ export async function onRequest(context) {  // Contents of context object
 
     // 鉴权
     const requiredPermission = 'upload';
-    if (!await userAuthCheck(env, url, request, requiredPermission)) {
+    const pjtype = url.searchParams.get('pj_type')||''
+    if(pjtype==='jm'){
+        let authCode = url.searchParams.get('authCode');
+        if(authCode !== securityConfig.auth.user.authCodeUpload){
+            return UnauthorizedResponse('Unauthorized');
+        }
+    }else if (!await userAuthCheck(env, url, request, requiredPermission)) {
         return UnauthorizedResponse('Unauthorized');
     }
 
