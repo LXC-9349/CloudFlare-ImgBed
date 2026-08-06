@@ -31,13 +31,7 @@ export async function onRequest(context) {  // Contents of context object
 
     // 鉴权
     const requiredPermission = 'upload';
-    const pjtype = url.searchParams.get('pj_type')||''
-    if(pjtype==='jm'){
-        let authCode = url.searchParams.get('authCode');
-        if(authCode !== securityConfig.auth.user.authCodeUpload){
-            return UnauthorizedResponse('Unauthorized');
-        }
-    }else if (!await userAuthCheck(env, url, request, requiredPermission)) {
+    if (!await userAuthCheck(env, url, request, requiredPermission)) {
         return UnauthorizedResponse('Unauthorized');
     }
 
@@ -82,7 +76,8 @@ export async function onRequest(context) {  // Contents of context object
 
 // 通用文件上传处理函数
 async function processFileUpload(context, formdata = null) {
-    const { request, url,securityConfig } = context;
+    const { request, url } = context;
+
     // 解析表单数据
     formdata = formdata || await request.formData();
 
@@ -199,10 +194,7 @@ async function processFileUpload(context, formdata = null) {
     // 获得返回链接格式, default为返回/file/id, full为返回完整链接
     const returnFormat = url.searchParams.get('returnFormat') || 'default';
     let returnLink = '';
-    const pjtype = url.searchParams.get('pj_type')||''
-    if(pjtype==='jm'){
-        returnLink=xorEncrypt(`${url.origin}/file/${fullId}`,securityConfig.auth.user.pjAuthCode);
-    }else if (returnFormat === 'full') {
+    if (returnFormat === 'full') {
         returnLink = `${url.origin}/file/${fullId}`;
     } else {
         returnLink = `/file/${fullId}`;
@@ -290,33 +282,6 @@ function buildUploadResponse(context, returnLink) {
             'Content-Type': 'application/json',
         },
     });
-}
-
-//加密方法
-/**
- * @param {string} text
- * @param {string} key
- */
-function xorEncrypt(text, key) {
-    const ft = getFileType(text)
-    const textBytes = new TextEncoder().encode(text);
-    const keyBytes = new TextEncoder().encode(key);
-    const result = new Uint8Array(textBytes.length);
-    // XOR each byte
-    for (let i = 0; i < textBytes.length; i++) {
-        result[i] = textBytes[i] ^ keyBytes[i % keyBytes.length];
-    }
-    // Convert the result to Base64 for easy transmission
-    return btoa(String.fromCharCode(...result)) + ft;
-}
-
-function getFileType(fileName) {
-    // 检查文件名是否为空或无效
-    if (!fileName || typeof fileName !== 'string' || fileName.indexOf('.') === -1) {
-        return '';
-    }
-    // 获取文件扩展名
-    return '.' + fileName.split('.').pop().toLowerCase();
 }
 
 // 上传到Cloudflare R2
